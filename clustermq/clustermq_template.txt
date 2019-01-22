@@ -1,0 +1,15 @@
+#!/bin/sh
+#SBATCH --job-name={{ job_name }}
+#SBATCH --partition={{ ptn }}
+#SBATCH --time={{ time_amt }}
+#SBATCH --output={{ log_file | /dev/null }} # you can add .%a for array index
+#SBATCH --error={{ log_file | /dev/null }}
+#SBATCH --mem-per-cpu={{ memory | 4096 }}
+#SBATCH --array=1-{{ n_jobs }}
+
+
+module load gcc/6.2.0
+module load zeromq/4.2.5
+
+ulimit -v $(( 1024 * {{ memory | 4096 }} ))
+R --no-save --no-restore -e 'clustermq:::worker("{{ master }}")'
