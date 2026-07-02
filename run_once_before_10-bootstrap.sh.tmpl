@@ -14,7 +14,10 @@ if command -v brew >/dev/null 2>&1; then
     brew install --quiet \
         starship fzf zoxide eza bat ripgrep fd git \
         zsh-autosuggestions zsh-syntax-highlighting \
-        atuin radian 2>/dev/null || true
+        atuin 2>/dev/null || true
+    # NOTE: radian is NOT a brew formula — it's a PyPI package. It's installed
+    # by the cross-platform Python block below (pipx / python3 -m pip) on all
+    # platforms, macOS included.
 
 # ---------------------------------------------------------------------------
 # Debian/Ubuntu servers with apt + sudo
