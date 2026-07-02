@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+# Runs ONCE per machine on first `chezmoi apply` (re-runs only if this file
+# changes). Installs the CLI tools the dotfiles want, using whatever package
+# manager is available. Everything is best-effort and non-fatal.
+set -uo pipefail
+
+log() { printf '\033[1;34m[bootstrap]\033[0m %s\n' "$*"; }
+
+# ---------------------------------------------------------------------------
+# macOS + Homebrew
+# ---------------------------------------------------------------------------
+if command -v brew >/dev/null 2>&1; then
+    log "Homebrew detected — installing CLI tools"
+    brew install --quiet \
+        starship fzf zoxide eza bat ripgrep fd git \
+        zsh-autosuggestions zsh-syntax-highlighting 2>/dev/null || true
+
+# ---------------------------------------------------------------------------
+# Debian/Ubuntu servers with apt + sudo
+# ---------------------------------------------------------------------------
+elif command -v apt-get >/dev/null 2>&1 && command -v sudo >/dev/null 2>&1; then
+    log "apt detected — installing what's packaged"
+    sudo apt-get update -qq || true
+    # Package names vary; fd is fd-find, bat is batcat on Debian.
+    sudo apt-get install -y -qq zsh git fzf ripgrep fd-find bat zoxide 2>/dev/null || true
+    # starship + eza aren't in older apt repos — grab starship's installer.
+    if ! command -v starship >/dev/null 2>&1; then
+        curl -fsSL https://starship.rs/install.sh | sh -s -- --yes --bin-dir "$HOME/.local/bin" || true
+    fi
+
+# ---------------------------------------------------------------------------
+# Locked-down server: no root. Install starship to ~/.local/bin only.
+# ---------------------------------------------------------------------------
+else
+    log "No usable package manager with privileges — installing starship to ~/.local/bin"
+    mkdir -p "$HOME/.local/bin"
+    if ! command -v starship >/dev/null 2>&1; then
+        curl -fsSL https://starship.rs/install.sh | sh -s -- --yes --bin-dir "$HOME/.local/bin" || true
+    fi
+    log "zsh plugins will be provided via chezmoi externals (~/.local/share)"
+fi
+
+log "done. Restart your shell or run: exec zsh"

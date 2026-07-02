@@ -1,0 +1,7 @@
+# Files in the source dir that should NOT be applied to $HOME as dotfiles.
+README.md
+.git
+.gitignore
+
+# Never manage machine-local secret escape hatch through chezmoi.
+.config/dotfiles/secrets.zsh

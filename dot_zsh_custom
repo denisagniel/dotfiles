@@ -1,0 +1,86 @@
+# ~/.zsh_custom — personal aliases & functions (sourced by ~/.zshrc)
+# Kept free of environment/PATH/history setup — that all lives in .zshrc now.
+
+# ============================================
+# NAVIGATION
+# ============================================
+alias ..='cd ..'
+alias ...='cd ../..'
+alias ....='cd ../../..'
+
+# ============================================
+# LISTING (eza if present, else coreutils ls)
+# ============================================
+if command -v eza >/dev/null 2>&1; then
+    alias ls='eza --icons'
+    alias ll='eza -lah --icons --git'
+    alias lt='eza --tree --level=2 --icons'
+else
+    alias ll='ls -lah'
+fi
+
+# cat -> bat if present (nice for source files/logs)
+command -v bat >/dev/null 2>&1 && alias cat='bat --paging=never'
+
+# ============================================
+# GIT (extras beyond the oh-my-zsh git plugin)
+# ============================================
+alias gs='git status'
+alias gd='git diff'
+alias glog='git log --oneline --graph --decorate --all'
+
+# ============================================
+# R / DATA SCIENCE
+# ============================================
+alias R='R --quiet --no-save'
+alias Rscript='Rscript --vanilla'
+
+# Run an R script (Rscript with a friendly not-found message)
+rrun() {
+    [[ -f "$1" ]] && Rscript "$1" || echo "Error: file '$1' not found" >&2
+}
+
+# Open R help for a topic from the shell:  rhelp lm
+rhelp() {
+    R -e "?$1" --quiet --no-save
+}
+
+# R CMD check / install for the package in the current dir
+rpkgcheck() {
+    [[ -f DESCRIPTION ]] && R CMD check --as-cran . || echo "Not in an R package directory" >&2
+}
+rpkginstall() {
+    [[ -f DESCRIPTION ]] && R CMD INSTALL . || echo "Not in an R package directory" >&2
+}
+
+# ============================================
+# SAFETY (interactive prompts on destructive ops)
+# ============================================
+alias rm='rm -i'
+alias cp='cp -i'
+alias mv='mv -i'
+
+# ============================================
+# SYSTEM / MISC
+# ============================================
+alias brewup='brew update && brew upgrade && brew cleanup'
+alias myip='curl -s ifconfig.me; echo'
+alias reload='source ~/.zshrc'
+
+# mkdir + cd in one step
+mkcd() { mkdir -p "$1" && cd "$1"; }
+
+# Extract most archive formats:  extract foo.tar.gz
+extract() {
+    [[ -f "$1" ]] || { echo "Error: '$1' is not a valid file" >&2; return 1; }
+    case "$1" in
+        *.tar.gz|*.tgz)   tar -xzf "$1" ;;
+        *.tar.bz2|*.tbz2) tar -xjf "$1" ;;
+        *.tar.xz)         tar -xJf "$1" ;;
+        *.tar)            tar -xf  "$1" ;;
+        *.zip)            unzip    "$1" ;;
+        *.gz)             gunzip   "$1" ;;
+        *.bz2)            bunzip2  "$1" ;;
+        *) echo "Unknown archive format: $1" >&2 ;;
+    esac
+}

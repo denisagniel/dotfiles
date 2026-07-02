@@ -1,0 +1,18 @@
+# Never commit secrets or machine-local escape hatches.
+secrets.zsh
+*.secret
+.env
+.env.*
+
+# chezmoi machine-local config (holds secret values on each machine)
+chezmoi.toml
+
+# AWS credentials must never live here
+credentials
+aws-credentials*
+
+# OS cruft
+.DS_Store
+
+# Claude Code local settings
+.claude/

@@ -1,0 +1,11 @@
+# Template for per-machine chezmoi config. On `chezmoi init` you'll be prompted
+# for these values; answers are written to ~/.config/chezmoi/chezmoi.toml
+# (machine-local, NEVER committed). Secrets never enter the git repo.
+{{- $censusKey := promptStringOnce . "census_api_key" "Census API key (blank to skip)" "" -}}
+{{- $gitName := promptStringOnce . "git_name" "Git author name" "Denis Agniel" -}}
+{{- $gitEmail := promptStringOnce . "git_email" "Git author email" "dagniel@rand.org" -}}
+
+[data]
+    census_api_key = {{ $censusKey | quote }}
+    git_name = {{ $gitName | quote }}
+    git_email = {{ $gitEmail | quote }}

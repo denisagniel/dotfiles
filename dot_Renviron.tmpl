@@ -1,0 +1,10 @@
+# ~/.Renviron — managed by chezmoi (source: RAND/tools/dotfiles)
+# Environment variables available to R. Secrets are injected from chezmoi
+# config data (~/.config/chezmoi/chezmoi.toml), NOT stored in the repo.
+#
+# R_LIBS_USER keeps your personal package library stable across R minor
+# versions and machines.
+R_LIBS_USER=${HOME}/R/library
+
+# --- Secrets (templated; empty string if not configured on this machine) ---
+CENSUS_API_KEY={{ .census_api_key | quote }}

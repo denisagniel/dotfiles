@@ -1,0 +1,13 @@
+# External dependencies chezmoi fetches on `chezmoi apply`.
+# This is how server machines (no brew, maybe no root) still get plugins:
+# chezmoi clones them into ~/.local/share. Refreshed weekly.
+
+[".local/share/zsh-autosuggestions"]
+    type = "git-repo"
+    url = "https://github.com/zsh-users/zsh-autosuggestions.git"
+    refreshPeriod = "168h"
+
+[".local/share/zsh-syntax-highlighting"]
+    type = "git-repo"
+    url = "https://github.com/zsh-users/zsh-syntax-highlighting.git"
+    refreshPeriod = "168h"

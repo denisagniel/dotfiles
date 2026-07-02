@@ -1,0 +1,94 @@
+# ~/.Rprofile — managed by chezmoi (source: RAND/tools/dotfiles)
+# Runs at the start of every R session. Keep it fast and side-effect-light;
+# anything interactive-only is guarded by interactive() so it never breaks
+# `Rscript`, R CMD check, CI, or reproducible pipelines.
+
+# ---------------------------------------------------------------------------
+# Options that apply to ALL sessions (scripts included)
+# ---------------------------------------------------------------------------
+options(
+  # A fast, reliable default CRAN mirror (RStudio's CDN).
+  repos = c(CRAN = "https://cloud.r-project.org"),
+
+  # Surface partial-argument / partial-name matching as warnings — these are a
+  # classic source of silent bugs.
+  warnPartialMatchArgs   = TRUE,
+  warnPartialMatchDollar = TRUE,
+  warnPartialMatchAttr   = TRUE,
+
+  # Show up to 7 significant digits; keep long vectors readable.
+  digits = 7,
+
+  # Don't turn strings into factors implicitly (R >= 4.0 already defaults this
+  # way for data.frame(), but be explicit for read.* and older habits).
+  stringsAsFactors = FALSE,
+
+  # Warn immediately rather than batching warnings to end of a top-level call.
+  warn = 1,
+
+  # Timeout for download.file / install.packages (seconds).
+  timeout = 300,
+
+  # Use multiple cores for package compilation / install.
+  Ncpus = max(1L, parallel::detectCores() - 1L)
+)
+
+# ---------------------------------------------------------------------------
+# INTERACTIVE-ONLY niceties (never run under Rscript / check / CI)
+# ---------------------------------------------------------------------------
+if (interactive()) {
+
+  # Wider console output to match modern terminals.
+  options(width = 120)
+
+  # Prettier, safer prompts.
+  options(
+    prompt   = "R> ",
+    continue = "   ",
+    # Show max 1000 rows/elements so a stray print doesn't flood the console.
+    max.print = 1000
+  )
+
+  # Load handy packages IF installed — silently skip if not, so this file is
+  # portable to fresh machines that haven't installed them yet.
+  .load_if_available <- function(pkgs) {
+    for (p in pkgs) {
+      if (requireNamespace(p, quietly = TRUE)) {
+        suppressMessages(library(p, character.only = TRUE))
+      }
+    }
+  }
+  # Note: only lightweight, always-wanted helpers here. Heavy stacks (tidyverse)
+  # are better loaded per-project so scripts declare their own deps.
+  .load_if_available(c("colorout"))  # colored console output, if installed
+
+  # Custom helper environment so these don't clutter the global workspace and
+  # aren't saved into .RData.
+  .env <- attach(NULL, name = "RprofileHelpers")
+
+  # Quickly see the size of the largest objects in your workspace.
+  assign("lsos", function(n = 10) {
+    obj <- ls(envir = .GlobalEnv)
+    if (length(obj) == 0) return(invisible(NULL))
+    sizes <- sapply(obj, function(x) object.size(get(x, envir = .GlobalEnv)))
+    utils::head(sort(sizes, decreasing = TRUE), n)
+  }, envir = .env)
+
+  # Detach helpers cleanly if you re-source this file.
+  rm(.env)
+
+  # Friendly startup banner (only when a human is watching).
+  .first_msg <- sprintf(
+    "R %s  |  %s\n",
+    getRversion(),
+    R.version$platform
+  )
+  cat(.first_msg)
+  rm(.first_msg)
+}
+
+# ---------------------------------------------------------------------------
+# Session cleanup helpers
+# ---------------------------------------------------------------------------
+# Keep the search path tidy for reproducibility warnings from checks.
+invisible(NULL)

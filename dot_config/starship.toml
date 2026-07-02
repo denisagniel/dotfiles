@@ -1,0 +1,45 @@
+# ~/.config/starship.toml — managed by chezmoi
+# A clean, fast, git-aware prompt that looks identical on Mac and servers.
+# Docs: https://starship.rs/config/
+
+# Two-line prompt: info line, then the input caret.
+format = """
+$username$hostname$directory$git_branch$git_status$cmd_duration
+$character"""
+
+add_newline = true
+
+[character]
+success_symbol = "[❯](bold green)"
+error_symbol = "[❯](bold red)"
+
+[username]
+# Show user@host only over SSH (helps distinguish servers from local).
+show_always = false
+format = "[$user]($style)"
+style_user = "cyan"
+
+[hostname]
+ssh_only = true
+format = "[@$hostname]($style) "
+style = "cyan"
+
+[directory]
+truncation_length = 4
+truncate_to_repo = true
+style = "blue"
+
+[git_branch]
+symbol = " "
+format = "[$symbol$branch]($style) "
+style = "yellow"
+
+[git_status]
+format = '([$all_status$ahead_behind]($style) )'
+style = "red"
+
+[cmd_duration]
+# Show how long the last command took if it was slow.
+min_time = 2000
+format = "[$duration]($style) "
+style = "dimmed white"

@@ -1,0 +1,46 @@
+[user]
+	name = {{ .git_name | default "Denis Agniel" }}
+	email = {{ .git_email | default "dagniel@rand.org" }}
+
+[init]
+	defaultBranch = main
+
+[pull]
+	# Avoid surprise merge commits on `git pull`; fast-forward or refuse.
+	ff = only
+
+[push]
+	# Push the current branch to its upstream of the same name.
+	default = simple
+	autoSetupRemote = true
+
+[fetch]
+	prune = true
+
+[core]
+	editor = {{ if lookPath "nvim" }}nvim{{ else }}vim{{ end }}
+	autocrlf = input
+
+[color]
+	ui = auto
+
+[diff]
+	# Better rename/move detection and function-context hunks.
+	algorithm = histogram
+	colorMoved = default
+
+[merge]
+	conflictStyle = zdiff3
+
+[rerere]
+	# Remember how you resolved conflicts and reapply automatically.
+	enabled = true
+
+[alias]
+	st = status
+	co = checkout
+	br = branch
+	ci = commit
+	lg = log --oneline --graph --decorate --all
+	last = log -1 HEAD
+	unstage = reset HEAD --
