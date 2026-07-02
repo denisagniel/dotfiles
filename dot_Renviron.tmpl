@@ -6,5 +6,5 @@
 # versions and machines.
 R_LIBS_USER=${HOME}/R/library
 
-# --- Secrets (templated; empty string if not configured on this machine) ---
-CENSUS_API_KEY={{ .census_api_key | quote }}
+# --- Secrets (templated; blank if not configured on this machine) ---
+CENSUS_API_KEY={{ dig "census_api_key" "" . | quote }}

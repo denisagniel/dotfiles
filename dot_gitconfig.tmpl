@@ -1,6 +1,6 @@
 [user]
-	name = {{ .git_name | default "Denis Agniel" }}
-	email = {{ .git_email | default "dagniel@rand.org" }}
+	name = {{ dig "git_name" "Denis Agniel" . }}
+	email = {{ dig "git_email" "dagniel@rand.org" . }}
 
 [init]
 	defaultBranch = main
