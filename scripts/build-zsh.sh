@@ -15,13 +15,39 @@ mkdir -p "$PREFIX/bin" "$PREFIX/lib" "$PREFIX/include" "$SRC"
 cd "$SRC" || exit 1
 
 echo "== [1/5] fetch zsh $VER source =="
-if [ ! -f "zsh-$VER.tar.xz" ]; then
-    curl -fL -o "zsh-$VER.tar.xz" "https://www.zsh.org/pub/zsh-$VER.tar.xz" \
-      || curl -fL -o "zsh-$VER.tar.xz" "https://sourceforge.net/projects/zsh/files/zsh/$VER/zsh-$VER.tar.xz/download"
+# Release tarballs (with a pre-generated ./configure) from several mirrors.
+# SourceForge 403s bots, so send a browser UA. Debian's orig tarball is the
+# most reliable, unblocked mirror. We validate the download is real xz before
+# trusting it (a 403/404 HTML error page would otherwise slip through).
+UA="Mozilla/5.0 (X11; Linux x86_64)"
+URLS=(
+    "https://deb.debian.org/debian/pool/main/z/zsh/zsh_${VER}.orig.tar.xz"
+    "https://downloads.sourceforge.net/project/zsh/zsh/${VER}/zsh-${VER}.tar.xz"
+    "https://sourceforge.net/projects/zsh/files/zsh/${VER}/zsh-${VER}.tar.xz/download"
+    "https://www.zsh.org/pub/zsh-${VER}.tar.xz"
+)
+TARBALL="zsh-$VER.tar.xz"
+valid_xz() { [ -s "$1" ] && head -c6 "$1" | grep -q $'\xfd7zXZ'; }
+
+if ! valid_xz "$TARBALL"; then
+    rm -f "$TARBALL"
+    for u in "${URLS[@]}"; do
+        echo "  trying: $u"
+        curl -fL -A "$UA" -o "$TARBALL" "$u" 2>/dev/null || true
+        if valid_xz "$TARBALL"; then echo "  got valid tarball from: $u"; break; fi
+        rm -f "$TARBALL"
+    done
 fi
+if ! valid_xz "$TARBALL"; then
+    echo "FETCH FAILED: no mirror returned a valid zsh $VER tarball"; exit 1
+fi
+
 rm -rf "zsh-$VER"
-tar xf "zsh-$VER.tar.xz"
-cd "zsh-$VER" || exit 1
+tar xf "$TARBALL"
+# Extracted top dir can be zsh-5.9 (release) or zsh-$VER (Debian). Detect it.
+d=$(tar tf "$TARBALL" 2>/dev/null | head -1 | cut -d/ -f1)
+cd "$d" || { echo "cannot enter extracted dir '$d'"; exit 1; }
+echo "  building in: $PWD"
 
 echo "== [2/5] provide ncurses libs + headers (no sudo) =="
 # zsh's configure looks for lib<name>.so; RHEL ships only versioned .so.6/.so.5.
@@ -48,6 +74,13 @@ if [ ! -e "$PREFIX/include/ncurses.h" ] && [ ! -e /usr/include/ncurses.h ]; then
 fi
 
 echo "== [3/5] configure =="
+# Most release tarballs ship ./configure. If not (rare), regenerate it.
+if [ ! -x ./configure ]; then
+    echo "  no ./configure found; running Util/preconfig / autoreconf"
+    if [ -x ./Util/preconfig ]; then ./Util/preconfig >/dev/null 2>&1; fi
+    [ -x ./configure ] || autoreconf -i >/dev/null 2>&1 || true
+fi
+[ -x ./configure ] || { echo "no ./configure and could not generate one"; exit 1; }
 export CPPFLAGS="-I$PREFIX/include"
 export LDFLAGS="-L$PREFIX/lib -L/usr/lib64 -Wl,-rpath,/usr/lib64 -Wl,-rpath,$PREFIX/lib"
 ./configure --prefix="$PREFIX" --enable-multibyte --with-tcsetpgrp \
