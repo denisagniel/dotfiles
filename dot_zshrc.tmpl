@@ -13,8 +13,10 @@ elif [[ -x /usr/local/bin/brew ]]; then
     eval "$(/usr/local/bin/brew shellenv)"
 fi
 
-# User-local bins (installed by the bootstrap script, no root needed)
-export PATH="$HOME/.local/bin:$PATH"
+# User-local bins (installed by the bootstrap script, no root needed).
+# ~/.atuin/bin is where atuin's own installer lands on hosts whose glibc is too
+# old for the standard build (e.g. RHEL 9) — add it so atuin is on PATH there.
+export PATH="$HOME/.local/bin:$HOME/.atuin/bin:$PATH"
 
 # ---------------------------------------------------------------------------
 # 2. History (set before oh-my-zsh so its defaults don't clobber these)
