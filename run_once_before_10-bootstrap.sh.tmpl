@@ -43,9 +43,24 @@ fi
 
 # ---------------------------------------------------------------------------
 # Cross-platform extras (non-brew hosts). fzf-tab is clone-only (chezmoi
-# external), so nothing to install here. atuin + radian need their own routes.
+# external), but it's useless without the fzf binary — and the no-root branch
+# above never installs it. atuin + radian also need their own routes.
 # All best-effort and non-fatal.
 # ---------------------------------------------------------------------------
+if ! command -v fzf >/dev/null 2>&1; then
+    # Official installer: git clone + a binary in ~/.fzf/bin, no root needed.
+    log "installing fzf (required by fzf-tab)"
+    if git clone --depth 1 https://github.com/junegunn/fzf.git "$HOME/.fzf" 2>/dev/null; then
+        # --bin fetches the prebuilt binary into ~/.fzf/bin (on PATH? see below).
+        "$HOME/.fzf/install" --bin >/dev/null 2>&1 || true
+        # Symlink into ~/.local/bin so it's on the PATH .zshrc already exports.
+        mkdir -p "$HOME/.local/bin"
+        [[ -x "$HOME/.fzf/bin/fzf" ]] && ln -sf "$HOME/.fzf/bin/fzf" "$HOME/.local/bin/fzf"
+    fi
+    command -v fzf >/dev/null 2>&1 || [[ -x "$HOME/.local/bin/fzf" ]] \
+        || log "fzf install failed — fzf-tab will stay disabled until fzf is on PATH"
+fi
+
 if ! command -v atuin >/dev/null 2>&1; then
     log "installing atuin (cross-machine shell history)"
     # Official installer; drops binary into ~/.local/bin or ~/.atuin/bin.

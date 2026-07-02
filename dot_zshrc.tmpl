@@ -76,7 +76,7 @@ zstyle ':completion:*' menu no   # fzf-tab replaces the menu; if it's absent, pl
 #     the zstyles above, but BEFORE the widget-wrapping plugins in section 4).
 #     No-op if the clone isn't present (fresh machine before chezmoi apply).
 # ---------------------------------------------------------------------------
-if [[ -f "$HOME/.local/share/fzf-tab/fzf-tab.plugin.zsh" ]]; then
+if [[ -f "$HOME/.local/share/fzf-tab/fzf-tab.plugin.zsh" ]] && command -v fzf >/dev/null 2>&1; then
     source "$HOME/.local/share/fzf-tab/fzf-tab.plugin.zsh"
     # Group completions need a descriptions format string to be set.
     zstyle ':completion:*:descriptions' format '[%d]'
