@@ -4,25 +4,34 @@
 # `Rscript`, R CMD check, CI, or reproducible pipelines.
 
 # ---------------------------------------------------------------------------
-# Library paths (ALL sessions). PREPEND a canonical, version-stamped personal
-# library so install.packages() consolidates here across all machines, while
-# any site-managed / default libraries stay behind it for reads (so packages
-# installed elsewhere remain visible — no migration needed).
-#
-# Version-stamped (R/library/<major.minor>) on purpose: compiled packages can
-# break across R minor versions, so each R version gets its own dir. We do this
-# in .Rprofile rather than setting R_LIBS_USER in .Renviron, because
-# R_LIBS_USER *replaces* the single default user-library slot — on RAND servers
-# that slot is site-managed (e.g. /usr/local/R_packages/<user>/<host>/<ver>),
-# and clobbering it hides institutionally-installed packages.
+# Library paths (ALL sessions). Prefer a managed library location when one
+# exists; only fall back to a personal library in $HOME when nothing else is
+# writable. Rationale:
+#   * RAND servers place your library on managed storage (e.g.
+#     /usr/local/R_packages/<user>/<host>/<ver>) — chosen deliberately because
+#     home dirs are NFS-mounted and quota'd, and package libs are large + I/O
+#     heavy. We must NOT redirect installs into $HOME there.
+#   * A machine with no such location (personal Mac, bare server) has no
+#     writable library off-home, so we create a version-stamped one in $HOME.
+# We never set R_LIBS_USER in .Renviron: it replaces the single default slot
+# and would hide the managed library.
 # ---------------------------------------------------------------------------
 local({
+  home <- normalizePath(Sys.getenv("HOME"), mustWork = FALSE)
+  libs <- normalizePath(.libPaths(), mustWork = FALSE)
+  # Is there already a library we can install into that is NOT under $HOME?
+  # (file.access mode 2 = writable; returns 0 when writable.)
+  managed <- libs[file.access(libs, mode = 2L) == 0L & !startsWith(libs, home)]
+  if (length(managed) > 0L) {
+    return(invisible())          # managed storage exists — leave installs there
+  }
+  # No off-home writable library: fall back to a personal, version-stamped one.
+  # Version-stamped because compiled packages can break across R minor versions.
   ver      <- paste(R.version$major, sub("\\..*$", "", R.version$minor), sep = ".")
-  personal <- file.path(Sys.getenv("HOME"), "R", "library", ver)
+  personal <- file.path(home, "R", "library", ver)
   if (!dir.exists(personal)) {
     dir.create(personal, recursive = TRUE, showWarnings = FALSE)
   }
-  # Prepend only if the dir is usable, so a failed create can't break the path.
   if (dir.exists(personal)) {
     .libPaths(c(personal, .libPaths()))
   }
