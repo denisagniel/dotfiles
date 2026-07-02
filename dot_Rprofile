@@ -4,6 +4,20 @@
 # `Rscript`, R CMD check, CI, or reproducible pipelines.
 
 # ---------------------------------------------------------------------------
+# Library paths (ALL sessions). APPEND a personal library only if it exists;
+# never replace R's default (version-stamped) user library — replacing it hides
+# packages installed in the default location. This is why we don't set
+# R_LIBS_USER in .Renviron (that env var *overrides* the default slot).
+# ---------------------------------------------------------------------------
+local({
+  personal <- file.path(Sys.getenv("HOME"), "R", "library")
+  if (dir.exists(personal) && !(personal %in% .libPaths())) {
+    # After defaults so the native versioned lib keeps priority.
+    .libPaths(c(.libPaths(), personal))
+  }
+})
+
+# ---------------------------------------------------------------------------
 # Options that apply to ALL sessions (scripts included)
 # ---------------------------------------------------------------------------
 options(

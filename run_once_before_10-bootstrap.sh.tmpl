@@ -53,14 +53,23 @@ if ! command -v atuin >/dev/null 2>&1; then
 fi
 
 if ! command -v radian >/dev/null 2>&1; then
-    # radian is a Python package; use whatever pip is available, user-scoped.
-    for _pip in pip3 pip; do
-        if command -v "$_pip" >/dev/null 2>&1; then
-            log "installing radian (better R console) via $_pip"
-            "$_pip" install --user --quiet radian 2>/dev/null || true
+    # radian is a Python package. Prefer pipx (isolated, puts a binary on PATH);
+    # else pip --user. Surface errors instead of swallowing them, so a silent
+    # failure doesn't masquerade as success.
+    if command -v pipx >/dev/null 2>&1; then
+        log "installing radian via pipx"
+        pipx install radian || log "radian: pipx install failed (see above)"
+    else
+        for _pip in pip3 pip; do
+            command -v "$_pip" >/dev/null 2>&1 || continue
+            log "installing radian via $_pip --user"
+            # --user installs into ~/.local/bin (already on PATH). Show errors.
+            "$_pip" install --user radian || log "radian: $_pip install failed (see above)"
             break
-        fi
-    done
+        done
+    fi
+    command -v radian >/dev/null 2>&1 \
+        || log "radian not on PATH after install — check ~/.local/bin, or install pipx"
 fi
 
 log "done. Restart your shell or run: exec zsh"

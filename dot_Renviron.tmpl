@@ -2,9 +2,11 @@
 # Environment variables available to R. Secrets are injected from chezmoi
 # config data (~/.config/chezmoi/chezmoi.toml), NOT stored in the repo.
 #
-# R_LIBS_USER keeps your personal package library stable across R minor
-# versions and machines.
-R_LIBS_USER=${HOME}/R/library
+# NOTE: we deliberately do NOT set R_LIBS_USER here. Setting it *replaces* R's
+# default (version-stamped) user library rather than adding to it — on a machine
+# where packages live in the default lib and ${HOME}/R/library doesn't exist,
+# that hides every installed package. Library-path setup now lives in .Rprofile,
+# which appends a personal lib only if it actually exists (never clobbers).
 
 # --- Secrets (templated; blank if not configured on this machine) ---
 CENSUS_API_KEY={{ dig "census_api_key" "" . | quote }}
