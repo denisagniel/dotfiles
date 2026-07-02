@@ -4,16 +4,27 @@
 # `Rscript`, R CMD check, CI, or reproducible pipelines.
 
 # ---------------------------------------------------------------------------
-# Library paths (ALL sessions). APPEND a personal library only if it exists;
-# never replace R's default (version-stamped) user library — replacing it hides
-# packages installed in the default location. This is why we don't set
-# R_LIBS_USER in .Renviron (that env var *overrides* the default slot).
+# Library paths (ALL sessions). PREPEND a canonical, version-stamped personal
+# library so install.packages() consolidates here across all machines, while
+# any site-managed / default libraries stay behind it for reads (so packages
+# installed elsewhere remain visible — no migration needed).
+#
+# Version-stamped (R/library/<major.minor>) on purpose: compiled packages can
+# break across R minor versions, so each R version gets its own dir. We do this
+# in .Rprofile rather than setting R_LIBS_USER in .Renviron, because
+# R_LIBS_USER *replaces* the single default user-library slot — on RAND servers
+# that slot is site-managed (e.g. /usr/local/R_packages/<user>/<host>/<ver>),
+# and clobbering it hides institutionally-installed packages.
 # ---------------------------------------------------------------------------
 local({
-  personal <- file.path(Sys.getenv("HOME"), "R", "library")
-  if (dir.exists(personal) && !(personal %in% .libPaths())) {
-    # After defaults so the native versioned lib keeps priority.
-    .libPaths(c(.libPaths(), personal))
+  ver      <- paste(R.version$major, sub("\\..*$", "", R.version$minor), sep = ".")
+  personal <- file.path(Sys.getenv("HOME"), "R", "library", ver)
+  if (!dir.exists(personal)) {
+    dir.create(personal, recursive = TRUE, showWarnings = FALSE)
+  }
+  # Prepend only if the dir is usable, so a failed create can't break the path.
+  if (dir.exists(personal)) {
+    .libPaths(c(personal, .libPaths()))
   }
 })
 
