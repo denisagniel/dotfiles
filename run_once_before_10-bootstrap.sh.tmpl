@@ -74,14 +74,16 @@ if ! command -v radian >/dev/null 2>&1; then
     if command -v pipx >/dev/null 2>&1; then
         log "installing radian via pipx"
         pipx install radian || log "radian: pipx install failed (see above)"
+    elif command -v python3 >/dev/null 2>&1; then
+        # Use `python3 -m pip`, NOT the pip3 shim — on some RHEL boxes the
+        # /usr/local/bin/pip3 wrapper is broken (No module named pip._internal)
+        # while the module under a real python works. ensurepip repairs a
+        # missing user pip. --user lands radian in ~/.local/bin (already PATH).
+        log "installing radian via python3 -m pip --user"
+        python3 -m pip --version >/dev/null 2>&1 || python3 -m ensurepip --user >/dev/null 2>&1 || true
+        python3 -m pip install --user radian || log "radian: pip install failed (see above)"
     else
-        for _pip in pip3 pip; do
-            command -v "$_pip" >/dev/null 2>&1 || continue
-            log "installing radian via $_pip --user"
-            # --user installs into ~/.local/bin (already on PATH). Show errors.
-            "$_pip" install --user radian || log "radian: $_pip install failed (see above)"
-            break
-        done
+        log "radian: no python3/pipx found — skipping"
     fi
     command -v radian >/dev/null 2>&1 \
         || log "radian not on PATH after install — check ~/.local/bin, or install pipx"
