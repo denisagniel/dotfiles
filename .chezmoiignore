@@ -1,5 +1,6 @@
 # Files in the source dir that should NOT be applied to $HOME as dotfiles.
 README.md
+SECRETS.md
 .git
 .gitignore
 
