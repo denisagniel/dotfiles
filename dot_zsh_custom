@@ -32,8 +32,19 @@ alias glog='git log --oneline --graph --decorate --all'
 # ============================================
 # R / DATA SCIENCE
 # ============================================
-alias R='R --quiet --no-save'
-alias Rscript='Rscript --vanilla'
+# Interactive console: prefer radian (syntax highlight, multiline edit, fuzzy
+# history) when installed; fall back to the stock REPL otherwise.
+# `command R` still reaches the real binary if you need the plain console.
+if command -v radian >/dev/null 2>&1; then
+    alias R='radian'
+else
+    alias R='R --quiet --no-save'
+fi
+# NOTE: no --vanilla here. --vanilla also implies --no-environ, which skips
+# ~/.Renviron and therefore drops R_LIBS_USER — that hides your personal
+# package library from scripts. Use --no-save to stay non-interactive-safe
+# while still honoring .Renviron/.Rprofile.
+alias Rscript='Rscript --no-save'
 
 # Run an R script (Rscript with a friendly not-found message)
 rrun() {
