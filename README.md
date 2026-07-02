@@ -13,7 +13,7 @@ up a new Mac or Linux server with a consistent shell, prompt, and R environment.
 | `dot_Renviron.tmpl`              | `~/.Renviron`            | R env vars (secrets injected from chezmoi data) |
 | `dot_gitconfig.tmpl`             | `~/.gitconfig`           | Git identity + sensible defaults               |
 | `dot_config/starship.toml`        | `~/.config/starship.toml`| Portable, git-aware prompt                      |
-| `.chezmoiexternal.toml`           | —                        | Clones zsh plugins into `~/.local/share`        |
+| `.chezmoiexternal.toml`           | —                        | Clones zsh plugins (autosuggestions, syntax-highlighting, fzf-tab) into `~/.local/share` |
 | `run_once_before_10-bootstrap.sh.tmpl` | —                   | Installs CLI tools on first apply              |
 | `.chezmoi.toml.tmpl`              | `~/.config/chezmoi/…`    | Prompts for per-machine values (incl. secrets) |
 

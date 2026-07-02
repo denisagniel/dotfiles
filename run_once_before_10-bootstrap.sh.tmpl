@@ -13,7 +13,8 @@ if command -v brew >/dev/null 2>&1; then
     log "Homebrew detected — installing CLI tools"
     brew install --quiet \
         starship fzf zoxide eza bat ripgrep fd git \
-        zsh-autosuggestions zsh-syntax-highlighting 2>/dev/null || true
+        zsh-autosuggestions zsh-syntax-highlighting \
+        atuin radian 2>/dev/null || true
 
 # ---------------------------------------------------------------------------
 # Debian/Ubuntu servers with apt + sudo
@@ -38,6 +39,28 @@ else
         curl -fsSL https://starship.rs/install.sh | sh -s -- --yes --bin-dir "$HOME/.local/bin" || true
     fi
     log "zsh plugins will be provided via chezmoi externals (~/.local/share)"
+fi
+
+# ---------------------------------------------------------------------------
+# Cross-platform extras (non-brew hosts). fzf-tab is clone-only (chezmoi
+# external), so nothing to install here. atuin + radian need their own routes.
+# All best-effort and non-fatal.
+# ---------------------------------------------------------------------------
+if ! command -v atuin >/dev/null 2>&1; then
+    log "installing atuin (cross-machine shell history)"
+    # Official installer; drops binary into ~/.local/bin or ~/.atuin/bin.
+    curl -fsSL https://setup.atuin.sh | sh || true
+fi
+
+if ! command -v radian >/dev/null 2>&1; then
+    # radian is a Python package; use whatever pip is available, user-scoped.
+    for _pip in pip3 pip; do
+        if command -v "$_pip" >/dev/null 2>&1; then
+            log "installing radian (better R console) via $_pip"
+            "$_pip" install --user --quiet radian 2>/dev/null || true
+            break
+        fi
+    done
 fi
 
 log "done. Restart your shell or run: exec zsh"

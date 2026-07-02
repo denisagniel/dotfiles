@@ -67,7 +67,26 @@ fi
 
 # Case-insensitive / partial-word completion (applies in both paths)
 zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}' 'r:|[._-]=* r:|=*'
-zstyle ':completion:*' menu select
+zstyle ':completion:*' menu no   # fzf-tab replaces the menu; if it's absent, plain menu still works
+
+# ---------------------------------------------------------------------------
+# 3b. fzf-tab — fuzzy interactive tab completion (must load AFTER compinit and
+#     the zstyles above, but BEFORE the widget-wrapping plugins in section 4).
+#     No-op if the clone isn't present (fresh machine before chezmoi apply).
+# ---------------------------------------------------------------------------
+if [[ -f "$HOME/.local/share/fzf-tab/fzf-tab.plugin.zsh" ]]; then
+    source "$HOME/.local/share/fzf-tab/fzf-tab.plugin.zsh"
+    # Group completions need a descriptions format string to be set.
+    zstyle ':completion:*:descriptions' format '[%d]'
+    # Directory preview on `cd <TAB>` — eza if present, else ls.
+    if command -v eza >/dev/null 2>&1; then
+        zstyle ':fzf-tab:complete:cd:*' fzf-preview 'eza -1 --color=always --icons $realpath 2>/dev/null'
+    else
+        zstyle ':fzf-tab:complete:cd:*' fzf-preview 'ls -1 $realpath 2>/dev/null'
+    fi
+    # Preview file contents on kill/env/other selections where a path makes sense.
+    zstyle ':fzf-tab:*' switch-group ',' '.'   # ,/. to move between completion groups
+fi
 
 # ---------------------------------------------------------------------------
 # 4. Plugins that live outside oh-my-zsh (brew OR ~/.local/share clone).
@@ -86,6 +105,11 @@ done
 command -v starship >/dev/null 2>&1 && eval "$(starship init zsh)"
 command -v zoxide   >/dev/null 2>&1 && eval "$(zoxide init zsh)"
 command -v fzf      >/dev/null 2>&1 && source <(fzf --zsh 2>/dev/null)
+
+# atuin — SQLite-backed, cross-machine shell history on Ctrl-R.
+# Init AFTER fzf so atuin wins the Ctrl-R binding. --disable-up-arrow keeps the
+# familiar up-arrow behavior (per-session prefix search) and only rebinds Ctrl-R.
+command -v atuin    >/dev/null 2>&1 && eval "$(atuin init zsh --disable-up-arrow)"
 
 # syntax-highlighting must be sourced LAST of the plugins.
 for _p in \
