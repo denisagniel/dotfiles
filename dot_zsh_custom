@@ -35,7 +35,7 @@ alias glog='git log --oneline --graph --decorate --all'
 # Interactive console: prefer radian (syntax highlight, multiline edit, fuzzy
 # history) when installed; fall back to the stock REPL otherwise.
 # `command R` still reaches the real binary if you need the plain console.
-if command -v radian >/dev/null 2>&1; then
+if command -v radian >/dev/null 2>&1 && [[ -n "$R_HOME" ]]; then
     alias R='radian'
 else
     alias R='R --quiet --no-save'
