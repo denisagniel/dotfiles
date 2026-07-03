@@ -35,11 +35,15 @@ alias glog='git log --oneline --graph --decorate --all'
 # Interactive console: prefer radian (syntax highlight, multiline edit, fuzzy
 # history) when installed; fall back to the stock REPL otherwise.
 # `command R` still reaches the real binary if you need the plain console.
-if command -v radian >/dev/null 2>&1 && [[ -n "$R_HOME" ]]; then
-    alias R='radian'
-else
-    alias R='R --quiet --no-save'
-fi
+R() {
+    if [[ "$1" == "CMD" ]]; then
+        command R "$@"
+    elif command -v radian >/dev/null 2>&1 && [[ -n "$R_HOME" ]]; then
+        radian "$@"
+    else
+        command R --quiet --no-save "$@"
+    fi
+}
 # NOTE: no --vanilla here. --vanilla also implies --no-environ, which skips
 # ~/.Renviron and therefore drops R_LIBS_USER — that hides your personal
 # package library from scripts. Use --no-save to stay non-interactive-safe
